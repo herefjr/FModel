@@ -79,7 +79,6 @@ using FModel.Extensions;
 using FModel.Framework;
 using FModel.Services;
 using FModel.Settings;
-using FModel.ViewModels.ApiEndpoints.Models;
 using FModel.Views;
 using FModel.Views.Resources.Controls;
 using FModel.Views.Snooper;
@@ -412,7 +411,7 @@ public class CUE4ParseViewModel : ViewModel
 
         await _threadWorkerView.Begin(cancellationToken =>
         {
-            AesResponse aes;
+            FModel.ViewModels.ApiEndpoints.Models.AesResponse aes;
             if (endpoint.Overwrite && File.Exists(endpoint.FilePath))
             {
                 aes = _apiEndpointView.DynamicApi.GetAesKeysFromFile(endpoint.FilePath, endpoint.Path);

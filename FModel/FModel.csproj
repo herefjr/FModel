@@ -284,4 +284,11 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <Target Name="CopyCUE4ParseNatives" AfterTargets="Build">
+    <PropertyGroup>
+      <_NativesDll>$(MSBuildThisFileDirectory)..\CUE4Parse\CUE4Parse-Natives\bin\$(Configuration)\CUE4Parse-Natives.dll</_NativesDll>
+    </PropertyGroup>
+    <Copy SourceFiles="$(_NativesDll)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('$(_NativesDll)')" />
+  </Target>
+
 </Project>
