@@ -1,6 +1,8 @@
+using System.IO;
 using System.Linq;
 using FModel.Framework;
 using FModel.ViewModels.ApiEndpoints;
+using FModel.ViewModels.ApiEndpoints.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -42,7 +44,11 @@ public class EndpointSettings : ViewModel
     public bool Overwrite
     {
         get => _overwrite;
-        set => SetProperty(ref _overwrite, value);
+        set
+        {
+            SetProperty(ref _overwrite, value);
+            RaisePropertyChanged(nameof(HasLocalOrRemoteConfig));
+        }
     }
 
     private string _filePath;
@@ -60,6 +66,7 @@ public class EndpointSettings : ViewModel
         {
             SetProperty(ref _isValid, value);
             RaisePropertyChanged(nameof(Label));
+            RaisePropertyChanged(nameof(HasLocalOrRemoteConfig));
         }
     }
 
@@ -67,6 +74,9 @@ public class EndpointSettings : ViewModel
     public string Label => IsValid ?
         "Your endpoint configuration is valid! Please, avoid any unnecessary modifications!" :
         "Your endpoint configuration DOES NOT seem to be valid yet! Please, test it out!";
+
+    [JsonIgnore]
+    public bool HasLocalOrRemoteConfig => Overwrite || IsValid;
 
     public EndpointSettings() {}
     public EndpointSettings(string url, string path)
@@ -79,21 +89,37 @@ public class EndpointSettings : ViewModel
     public void TryValidate(DynamicApiEndpoint endpoint, EEndpointType type, out JToken response)
     {
         response = null;
-        if (string.IsNullOrEmpty(Url) || string.IsNullOrEmpty(Path))
-        {
-            IsValid = false;
-        }
-        else switch (type)
+        switch (type)
         {
             case EEndpointType.Aes:
             {
-                var r = endpoint.GetAesKeys(default, Url, Path);
+                AesResponse r;
+                if (Overwrite && File.Exists(FilePath))
+                {
+                    r = endpoint.GetAesKeysFromFile(FilePath, Path);
+                }
+                else if (!string.IsNullOrEmpty(Url) && !string.IsNullOrEmpty(Path))
+                {
+                    r = endpoint.GetAesKeys(default, Url, Path);
+                }
+                else
+                {
+                    IsValid = false;
+                    break;
+                }
+
                 response = JToken.FromObject(r);
                 IsValid = r.IsValid;
                 break;
             }
             case EEndpointType.Mapping:
             {
+                if (string.IsNullOrEmpty(Url) || string.IsNullOrEmpty(Path))
+                {
+                    IsValid = false;
+                    break;
+                }
+
                 var r = endpoint.GetMappings(default, Url, Path);
                 response = JToken.FromObject(r);
                 IsValid = r.Any(x => x.IsValid);

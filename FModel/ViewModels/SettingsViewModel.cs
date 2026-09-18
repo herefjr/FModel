@@ -152,6 +152,7 @@ public class SettingsViewModel : ViewModel
     private EJsonHighlightTheme _jsonHighlightThemeSnapshot;
 
     private bool _mappingsUpdate = false;
+    private bool _aesUpdate = false;
 
     public SettingsViewModel()
     {
@@ -177,6 +178,11 @@ public class SettingsViewModel : ViewModel
 
         AesEndpoint = UserSettings.Default.CurrentDir.Endpoints[0];
         MappingEndpoint = UserSettings.Default.CurrentDir.Endpoints[1];
+        AesEndpoint.PropertyChanged += (_, args) =>
+        {
+            if (!_aesUpdate)
+                _aesUpdate = args.PropertyName is "Overwrite" or "FilePath";
+        };
         MappingEndpoint.PropertyChanged += (_, args) =>
         {
             if (!_mappingsUpdate)
@@ -219,6 +225,8 @@ public class SettingsViewModel : ViewModel
             whatShouldIDo.Add(SettingsOut.ReloadLocres);
         if (_mappingsUpdate)
             whatShouldIDo.Add(SettingsOut.ReloadMappings);
+        if (_aesUpdate)
+            whatShouldIDo.Add(SettingsOut.ReloadAes);
 
         if (_ueGameSnapshot != SelectedUeGame || _customVersionsSnapshot != SelectedCustomVersions ||
             _optionsSnapshot != SelectedOptions || // combobox

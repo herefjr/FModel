@@ -5,7 +5,9 @@ using System.Windows.Media;
 using FModel.Extensions;
 using FModel.Services;
 using FModel.Settings;
+using FModel.ViewModels.ApiEndpoints;
 using ICSharpCode.AvalonEdit.Document;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 
 namespace FModel.Views.Resources.Controls;
@@ -54,6 +56,27 @@ public partial class EndpointEditor
     {
         DialogResult = _isTested && DataContext is EndpointSettings { IsValid: true };
         Close();
+    }
+
+    private void OnBrowseLocal(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not EndpointSettings endpoint) return;
+
+        var openFileDialog = new OpenFileDialog
+        {
+            Title = _type == EEndpointType.Aes ? "Select an AES keys JSON file" : "Select a mapping JSON file",
+            Filter = "JSON Files (*.json)|*.json|All Files (*.*)|*.*"
+        };
+
+        if (!openFileDialog.ShowDialog().GetValueOrDefault())
+            return;
+
+        endpoint.Url = openFileDialog.FileName;
+        endpoint.Overwrite = _type == EEndpointType.Aes;
+        endpoint.FilePath = openFileDialog.FileName;
+        if (_type == EEndpointType.Aes && string.IsNullOrEmpty(endpoint.Path))
+            endpoint.Path = DynamicApiEndpoint.DefaultAesJsonPath;
+        endpoint.IsValid = false;
     }
 
     private async void OnSend(object sender, RoutedEventArgs e)

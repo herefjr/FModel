@@ -21,7 +21,8 @@ public enum EErrorKind
 public enum SettingsOut
 {
     ReloadLocres,
-    ReloadMappings
+    ReloadMappings,
+    ReloadAes
 }
 
 public enum EStatusKind

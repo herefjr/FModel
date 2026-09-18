@@ -13,6 +13,7 @@ using FModel.Framework;
 using FModel.Services;
 using FModel.Settings;
 using FModel.ViewModels;
+using FModel.ViewModels.ApiEndpoints;
 using FModel.Views.Resources.Controls;
 using ICSharpCode.AvalonEdit;
 using Microsoft.Win32;
@@ -61,6 +62,12 @@ public partial class SettingsView
                     break;
                 case SettingsOut.ReloadMappings:
                     await _applicationView.CUE4Parse.InitMappings();
+                    break;
+                case SettingsOut.ReloadAes:
+                    await _applicationView.CUE4Parse.RefreshAes();
+                    await _applicationView.AesManager.InitAes();
+                    _applicationView.AesManager.HasChange = true;
+                    await _applicationView.UpdateProvider(false);
                     break;
             }
         }
@@ -130,6 +137,22 @@ public partial class SettingsView
             return;
 
         _applicationView.SettingsView.MappingEndpoint.FilePath = openFileDialog.FileName;
+    }
+
+    private void OnBrowseAesJson(object sender, RoutedEventArgs e)
+    {
+        var openFileDialog = new OpenFileDialog
+        {
+            Title = "Select an AES keys JSON file",
+            Filter = "JSON Files (*.json)|*.json|All Files (*.*)|*.*"
+        };
+
+        if (!openFileDialog.ShowDialog().GetValueOrDefault())
+            return;
+
+        _applicationView.SettingsView.AesEndpoint.FilePath = openFileDialog.FileName;
+        if (string.IsNullOrEmpty(_applicationView.SettingsView.AesEndpoint.Path))
+            _applicationView.SettingsView.AesEndpoint.Path = DynamicApiEndpoint.DefaultAesJsonPath;
     }
 
     private bool TryBrowse(out string path)

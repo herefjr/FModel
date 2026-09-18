@@ -79,6 +79,7 @@ using FModel.Extensions;
 using FModel.Framework;
 using FModel.Services;
 using FModel.Settings;
+using FModel.ViewModels.ApiEndpoints.Models;
 using FModel.Views;
 using FModel.Views.Resources.Controls;
 using FModel.Views.Snooper;
@@ -411,10 +412,19 @@ public class CUE4ParseViewModel : ViewModel
 
         await _threadWorkerView.Begin(cancellationToken =>
         {
-            // deprecated values
-            if (endpoint.Url == "https://fortnitecentral.genxgames.gg/api/v1/aes") endpoint.Url = "https://uedb.dev/svc/api/v1/fortnite/aes";
+            AesResponse aes;
+            if (endpoint.Overwrite && File.Exists(endpoint.FilePath))
+            {
+                aes = _apiEndpointView.DynamicApi.GetAesKeysFromFile(endpoint.FilePath, endpoint.Path);
+            }
+            else
+            {
+                // deprecated values
+                if (endpoint.Url == "https://fortnitecentral.genxgames.gg/api/v1/aes") endpoint.Url = "https://uedb.dev/svc/api/v1/fortnite/aes";
 
-            var aes = _apiEndpointView.DynamicApi.GetAesKeys(cancellationToken, endpoint.Url, endpoint.Path);
+                aes = _apiEndpointView.DynamicApi.GetAesKeys(cancellationToken, endpoint.Url, endpoint.Path);
+            }
+
             if (aes is not { IsValid: true }) return;
 
             UserSettings.Default.CurrentDir.AesKeys = aes;
